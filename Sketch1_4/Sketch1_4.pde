@@ -1,9 +1,9 @@
-// Sketch 1-4 digital screening //<>//
+// Sketch 1-4 Digital Screening //<>//
 
 float [][] sourceIntensity;
 float [][] outputIntensity;
 
-float[][] maskIntensity;
+float [][] maskIntensity;
 
 PImage inputImage;  // Loaded input image, do not alter!
 PImage outputImage; // Put your result image in here, so it gets displayed
@@ -108,7 +108,7 @@ void dither_floydSteinberg2D(float[][] S, float[][] O) {
 }
 
 void dither_lineErrorDiffusion(float[][] S, float[][] O) {
-  float m = 5.0; //line pixel long
+  int m = 3; //line pixel long
 
   for (int y=0; y<S[0].length-1; y++) {
     for (int x=1; x<S.length-1; x++) {
@@ -116,7 +116,7 @@ void dither_lineErrorDiffusion(float[][] S, float[][] O) {
       O[x][y] = K;
       float error = 0.0;
       if (K==0) {
-        line(x, y, (x-m), (y-m));
+        drawLine(O, x, y, m);
         error = S[x][y] - K + (m-1);
       } else {
         error = S[x][y] - K;
@@ -130,15 +130,26 @@ void dither_lineErrorDiffusion(float[][] S, float[][] O) {
   createIntensityVal(inputImage, sourceIntensity);
 }
 
+void drawLine(float[][] O, int x, int y, int size) {
+  // go minus left-top pixel from (x,y) on O coordinate and set the pixels as 0.0 (black)
+  for (int i=1; i<=size; i++) {
+    if (x-i>0 && y-i>0) {
+      O[x-i][y-i] = 0.0;
+    }
+  }
+}
+
 void digitalScreening(float[][] S, float[][] M, float[][] O) {
   int m = M.length;
   int n = M[0].length;
   for (int x=0; x<S.length; x++) {
     for (int y=0; y<S[0].length; y++) {
-      O[x][y] = (S[x][y]<M[(x%m)][y%n]) ? 0.0 : 0.1;
+      O[x][y] = (S[x][y] < M[x%m][y%n]) ? 0.0 : 1.0;
     }
-  }
+  }  
+  createIntensityVal(inputImage, sourceIntensity);
 }
+
 /*
  * Setup gets called ONCE at the beginning of the sketch. Load images here, size your window etc.
  * If you want to size your window according to the input image size, use settings().
@@ -182,7 +193,6 @@ void draw() {
  */
 
 void keyPressed() {
-  loop();
   if (key=='1') {
     outputImage = inputImage;
   }
@@ -203,7 +213,6 @@ void keyPressed() {
     outputImage = convertIntensityToPImage(outputIntensity);
   }
   if (key=='6') {
-    noLoop();
     dither_lineErrorDiffusion(sourceIntensity, outputIntensity);
     outputImage = convertIntensityToPImage(outputIntensity);
   }

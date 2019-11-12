@@ -1,11 +1,14 @@
-// Sketch 1-1 threshold and random dither //<>//
+// Sketch 1-3 Error Diffusion with lines //<>//
 
 float [][] sourceIntensity;
 float [][] outputIntensity;
 
+float [][] maskIntensity;
+
 PImage inputImage;  // Loaded input image, do not alter!
 PImage outputImage; // Put your result image in here, so it gets displayed
 
+PImage ditherKernel; //Digital Screening
 
 /*
  * Converts an intensity array to a PImage (RGB)
@@ -105,7 +108,7 @@ void dither_floydSteinberg2D(float[][] S, float[][] O) {
 }
 
 void dither_lineErrorDiffusion(float[][] S, float[][] O) {
-  float m = 5.0; //line pixel long
+  int m = 3; //line pixel long
 
   for (int y=0; y<S[0].length-1; y++) {
     for (int x=1; x<S.length-1; x++) {
@@ -113,7 +116,7 @@ void dither_lineErrorDiffusion(float[][] S, float[][] O) {
       O[x][y] = K;
       float error = 0.0;
       if (K==0) {
-        line(x, y, (x+m), (y+m));
+        drawLine(O, x, y, m);
         error = S[x][y] - K + (m-1);
       } else {
         error = S[x][y] - K;
@@ -127,6 +130,16 @@ void dither_lineErrorDiffusion(float[][] S, float[][] O) {
   createIntensityVal(inputImage, sourceIntensity);
 }
 
+void drawLine(float[][] O, int x, int y, int size) {
+  // go minus left-top pixel from (x,y) on O coordinate and set the pixels as 0.0 (black)
+  for (int i=1; i<=size; i++) {
+    if (x-i>0 && y-i>0) {
+      O[x-i][y-i] = 0.0;
+    }
+  }
+}
+
+
 /*
  * Setup gets called ONCE at the beginning of the sketch. Load images here, size your window etc.
  * If you want to size your window according to the input image size, use settings().
@@ -134,17 +147,22 @@ void dither_lineErrorDiffusion(float[][] S, float[][] O) {
 
 void settings() {
   inputImage = loadImage("data/blume.png");
+  ditherKernel = loadImage("data/dither/4.png");
+
   size(inputImage.width, inputImage.height); // this is now the actual size
 } 
 
 void setup() {
   surface.setResizable(false);
   frameRate(1);
-
+  ditherKernel.resize(16, 16);
   sourceIntensity = new float [inputImage.width][inputImage.height];
   outputIntensity = new float [inputImage.width][inputImage.height];
+  maskIntensity = new float [ditherKernel.width][ditherKernel.height];
 
-  createIntensityVal(inputImage, sourceIntensity);
+  createIntensityVal(inputImage, sourceIntensity); 
+  createIntensityVal(ditherKernel, maskIntensity);
+
   outputImage = inputImage;
 }
 
@@ -165,7 +183,6 @@ void draw() {
  */
 
 void keyPressed() {
-  loop();
   if (key=='1') {
     outputImage = inputImage;
   }
@@ -186,7 +203,6 @@ void keyPressed() {
     outputImage = convertIntensityToPImage(outputIntensity);
   }
   if (key=='6') {
-    noLoop();
     dither_lineErrorDiffusion(sourceIntensity, outputIntensity);
     outputImage = convertIntensityToPImage(outputIntensity);
   }
