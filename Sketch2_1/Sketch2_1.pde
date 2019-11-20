@@ -8,6 +8,8 @@ float pointRadius = 1;
 int numPoints = 50000; 
 int numTrials = 1000000;
 
+float avgSourceIntensity;
+
 // The Point class provides basic storage of 2D points and 3D points with a radius  
 
 class Point {
@@ -104,9 +106,16 @@ float getAvgIntensity(int x1, int y1, int x2, int y2, float [][] intensityArray)
  * Insert a point into the point List, checking in the intensityArray if the average intensity around the selected area is ok 
  */
 boolean insertPoint(float [][] intensityArray, ArrayList<Point> pointList, float x, float y) {
-
-  // TODO: Fill in according to task in slides. Also return true if a point was placed and false if no point was placed
-  return true;
+  // TODO: Fill in according to task in slides. Also return true if a point was placed and false if no point was placed //<>//
+  
+  //float aroundAvgIntensity = getAvgIntensity(int(x-3), int(y-3), int(x+3), int(y+3), intensityArray);
+  float randomPointAvgIntensity = getAvgIntensity(int(x-pointRadius), int(y-pointRadius), int(x+pointRadius), int(y+pointRadius), intensityArray);
+  if(avgSourceIntensity > randomPointAvgIntensity) {
+    pointList.add(new Point(x, y));
+    return true;
+  } else {
+    return false;
+  }
 }
 
 
@@ -114,21 +123,34 @@ boolean insertPoint(float [][] intensityArray, ArrayList<Point> pointList, float
  * Attempts to place numPoints many points into the picture and adds them to pointList
  */
 ArrayList<Point> createPoints() {
-
+  int points = 0;
+  int trials = 0;
   ArrayList<Point> pointList = new ArrayList<Point>(numPoints);
-
+  avgSourceIntensity = getAvgIntensity(0, 0, sourceIntensity.length, sourceIntensity[0].length, sourceIntensity);
   // TODO: Fill point list with random points until you have numPoints many of them
   // Check each point with insertPoint
   // Keep track of how many points you have and how many trials overall.
   // Stop when you achieve the number of points or run out of trials.
-
-  for (int counter = 0; counter<numPoints; counter++) {
-
-    pointList.add(new Point(random(inputImage.width), random(inputImage.height)));
+  
+  //Fill point list with random points until you have numPoints many of them
+  while(points <= numPoints) {
+    float randomPositionX = random(inputImage.width); //<>//
+    float randomPositionY = random(inputImage.height);
+    println("Points Number :" + pointList.size());
+    // Check each point with insertPoint
+    if (insertPoint(sourceIntensity, pointList, randomPositionX, randomPositionY)) {      
+      // Keep track of how many points you have and how many trials overall.
+      points+=1;           
+    } else {
+      trials+=1;
+    }
+    
+    // Stop when you achieve the number of points or run out of trials.
+    if(trials >= numTrials) {
+      break;
+    }
+    
   }
-
-
-
   return pointList;
 }
 
@@ -143,10 +165,9 @@ PImage createOutputImage(ArrayList<Point> pointList) {
   pointGraphics.beginDraw();
   pointGraphics.background(255);
   pointGraphics.fill(0);
-
   // TODO: Draw all points in pointList using pointGraphics.ellipse()
   for (Point p : pointList) {
-    pointGraphics.ellipse(p.x, p.y, p.r, p.r);
+    pointGraphics.ellipse(p.x, p.y, p.r, p.r); //<>//
   }
   pointGraphics.endDraw();
 
@@ -178,7 +199,7 @@ void keyPressed() {
     outputImage = inputImage;
   }
   if (key=='2') {
-    ArrayList pointList = createPoints();
+    ArrayList pointList = createPoints(); //<>//
     outputImage = createOutputImage(pointList);
   }  
 
