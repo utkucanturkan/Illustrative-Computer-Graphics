@@ -1,14 +1,12 @@
-PImage inputImage;
+PImage inputImage; //<>// //<>// //<>// //<>//
 PImage outputImage;
 
 float [][] sourceIntensity;
 
 float poissonDiscRadius = 15;
-float pointRadius = 1;
+float pointRadius = 3;
 int numPoints = 50000; 
 int numTrials = 1000000;
-
-float avgSourceIntensity;
 
 // The Point class provides basic storage of 2D points and 3D points with a radius  
 
@@ -106,32 +104,32 @@ float getAvgIntensity(int x1, int y1, int x2, int y2, float [][] intensityArray)
  * Insert a point into the point List, checking in the intensityArray if the average intensity around the selected area is ok 
  */
 boolean insertPoint(float [][] intensityArray, ArrayList<Point> pointList, float x, float y) {
-  // TODO: Fill in according to task in slides. Also return true if a point was placed and false if no point was placed //<>//
-  
-  float randomPointAvgIntensity = getAvgIntensity(int(x-poissonDiscRadius), int(y-poissonDiscRadius), int(x+poissonDiscRadius), int(y+poissonDiscRadius), intensityArray);
-  
-  float rad = sqrt(poissonDiscRadius*(randomPointAvgIntensity+0.2))
-  if(randomPointAvgIntensity > 0.95) {
-  //if(avgSourceIntensity > randomPointAvgIntensity) {
-    poissonDiscRadius = randomPointAvgIntensity / avgSourceIntensity;
-    if(isFarEnough(x, y, pointList)) {
-      pointList.add(new Point(x, y, 0, poissonDiscRadius));
-    //}    
+  // TODO: Fill in according to task in slides. Also return true if a point was placed and false if no point was placed
+
+  int px=(int)round(x);
+  int py=(int)round(y);
+
+  float randomPointAvgIntensity = getAvgIntensity(int(px-1), int(py-1), int(px+1), int(py+1), intensityArray);
+  float rad = 1/(0.1+1-randomPointAvgIntensity);
+  //
+  poissonDiscRadius = rad;
+
+  if (randomPointAvgIntensity > intensityArray[px][py] && isFarEnough(x, y, pointList)) {
+    pointList.add(new Point(px, py, 0, pointRadius));
     return true;
   } else {
     return false;
   }
 }
 
-boolean isFarEnough(float x, float y, ArrayList<Point> points){
-  boolean isFar = true;
-  Point _p = new Point(x, y, 0, poissonDiscRadius);
-  for(Point p: points) {
-    if(dist(p, _p) < poissonDiscRadius) {
-      isFar = false;
+boolean isFarEnough(float x, float y, ArrayList<Point> points) {
+  Point _p = new Point(x, y, 0, pointRadius);
+  for (Point p : points) {
+    if (dist(p, _p) < poissonDiscRadius) {
+      return false;
     }
   }
-  return isFar;
+  return true;
 }
 
 
@@ -142,30 +140,24 @@ ArrayList<Point> createPoints() {
   int points = 0;
   int trials = 0;
   ArrayList<Point> pointList = new ArrayList<Point>(numPoints);
-  avgSourceIntensity = getAvgIntensity(0, 0, sourceIntensity.length, sourceIntensity[0].length, sourceIntensity);
-  // TODO: Fill point list with random points until you have numPoints many of them
-  // Check each point with insertPoint
-  // Keep track of how many points you have and how many trials overall.
-  // Stop when you achieve the number of points or run out of trials.
-  
+
   //Fill point list with random points until you have numPoints many of them
-  while(points <= numPoints) {
-    float randomPositionX = random(inputImage.width); //<>//
-    float randomPositionY = random(inputImage.height);
+  while (points <= numPoints) {
+    float randomPositionX = int(random(1, width));
+    float randomPositionY = int(random(1, height));
     println("Points Number: " + pointList.size());
     // Check each point with insertPoint
     if (insertPoint(sourceIntensity, pointList, randomPositionX, randomPositionY)) {      
       // Keep track of how many points you have and how many trials overall.
-      points+=1;           
+      points+=1;
     } else {
       trials+=1;
     }
-    
+
     // Stop when you achieve the number of points or run out of trials.
-    if(trials >= numTrials) {
+    if (trials >= numTrials) {
       break;
     }
-    
   }
   return pointList;
 }
@@ -184,7 +176,7 @@ PImage createOutputImage(ArrayList<Point> pointList) {
   pointGraphics.noStroke();
   // TODO: Draw all points in pointList using pointGraphics.ellipse()
   for (Point p : pointList) {
-    pointGraphics.ellipse(p.x, p.y, p.r, p.r); //<>//
+    pointGraphics.ellipse(p.x, p.y, p.r, p.r);
   }
   pointGraphics.endDraw();
 
@@ -192,8 +184,8 @@ PImage createOutputImage(ArrayList<Point> pointList) {
 }
 
 void settings() {
-  //inputImage = loadImage("data/stone_figure.png");
-  inputImage = loadImage("data/rampe.png");
+  inputImage = loadImage("data/stone_figure.png");
+  //inputImage = loadImage("data/rampe.png");
   inputImage.resize(0, 1000);
   size(inputImage.width, inputImage.height); // this is now the actual size
 }
@@ -217,9 +209,9 @@ void keyPressed() {
     outputImage = inputImage;
   }
   if (key=='2') {
-    ArrayList pointList = createPoints(); //<>//
+    ArrayList pointList = createPoints();
     outputImage = createOutputImage(pointList);
-  }  
+  }
 
   if (key=='+') {
     numPoints *= 1.3;

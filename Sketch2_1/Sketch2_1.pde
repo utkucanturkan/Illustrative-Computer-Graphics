@@ -1,14 +1,10 @@
-PImage inputImage;
-PImage outputImage;
+PImage inputImage, outputImage; //<>// //<>// //<>// //<>//
 
 float [][] sourceIntensity;
 
-float poissonDiscRadius = 5;
-float pointRadius = 1;
+float pointRadius = 2;
 int numPoints = 50000; 
 int numTrials = 1000000;
-
-float avgSourceIntensity;
 
 // The Point class provides basic storage of 2D points and 3D points with a radius  
 
@@ -106,12 +102,14 @@ float getAvgIntensity(int x1, int y1, int x2, int y2, float [][] intensityArray)
  * Insert a point into the point List, checking in the intensityArray if the average intensity around the selected area is ok 
  */
 boolean insertPoint(float [][] intensityArray, ArrayList<Point> pointList, float x, float y) {
-  // TODO: Fill in according to task in slides. Also return true if a point was placed and false if no point was placed //<>//
-  
-  //float aroundAvgIntensity = getAvgIntensity(int(x-3), int(y-3), int(x+3), int(y+3), intensityArray);
-  float randomPointAvgIntensity = getAvgIntensity(int(x-pointRadius), int(y-pointRadius), int(x+pointRadius), int(y+pointRadius), intensityArray);
-  if(avgSourceIntensity > randomPointAvgIntensity) {
-    pointList.add(new Point(x, y));
+  // TODO: Fill in according to task in slides. Also return true if a point was placed and false if no point was placed
+
+  int px=(int)round(x);
+  int py=(int)round(y);
+
+  float randomPointAvgIntensity = getAvgIntensity(int(px-1), int(py-1), int(px+1), int(py+1), intensityArray);
+  if (randomPointAvgIntensity > intensityArray[px][py]) {
+    pointList.add(new Point(px, py, 0, pointRadius));
     return true;
   } else {
     return false;
@@ -125,31 +123,29 @@ boolean insertPoint(float [][] intensityArray, ArrayList<Point> pointList, float
 ArrayList<Point> createPoints() {
   int points = 0;
   int trials = 0;
-  ArrayList<Point> pointList = new ArrayList<Point>(numPoints);
-  avgSourceIntensity = getAvgIntensity(0, 0, sourceIntensity.length, sourceIntensity[0].length, sourceIntensity);
+  ArrayList<Point> pointList = new ArrayList<Point>(numPoints);  
   // TODO: Fill point list with random points until you have numPoints many of them
   // Check each point with insertPoint
   // Keep track of how many points you have and how many trials overall.
   // Stop when you achieve the number of points or run out of trials.
-  
+
   //Fill point list with random points until you have numPoints many of them
-  while(points <= numPoints) {
-    float randomPositionX = random(inputImage.width); //<>//
-    float randomPositionY = random(inputImage.height);
+  while (points <= numPoints) {
+    float randomPositionX = random(1, width-1);
+    float randomPositionY = random(1, height-1);
     println("Points Number: " + pointList.size());
     // Check each point with insertPoint
     if (insertPoint(sourceIntensity, pointList, randomPositionX, randomPositionY)) {      
       // Keep track of how many points you have and how many trials overall.
-      points+=1;           
+      points+=1;
     } else {
       trials+=1;
     }
-    
+
     // Stop when you achieve the number of points or run out of trials.
-    if(trials >= numTrials) {
-      break;
+    if (trials >= numTrials) {
+      return pointList;
     }
-    
   }
   return pointList;
 }
@@ -167,7 +163,7 @@ PImage createOutputImage(ArrayList<Point> pointList) {
   pointGraphics.fill(0);
   // TODO: Draw all points in pointList using pointGraphics.ellipse()
   for (Point p : pointList) {
-    pointGraphics.ellipse(p.x, p.y, p.r, p.r); //<>//
+    pointGraphics.ellipse(p.x, p.y, p.r, p.r);
   }
   pointGraphics.endDraw();
 
@@ -182,7 +178,6 @@ void settings() {
 
 void setup() {
   frameRate(3);
-
   sourceIntensity = new float [inputImage.width][inputImage.height];
   createIntensityVal(inputImage, sourceIntensity);
   outputImage = inputImage;
@@ -199,7 +194,8 @@ void keyPressed() {
     outputImage = inputImage;
   }
   if (key=='2') {
-    ArrayList pointList = createPoints(); //<>//
+    //avgSourceIntensity = getAvgIntensity(0, 0, sourceIntensity.length, sourceIntensity[0].length, sourceIntensity);
+    ArrayList pointList = createPoints();
     outputImage = createOutputImage(pointList);
   }  
 

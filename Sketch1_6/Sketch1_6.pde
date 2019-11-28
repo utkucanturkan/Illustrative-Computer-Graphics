@@ -1,4 +1,4 @@
-// Sketch 1-6 screening with characters 
+// Sketch 1-6 screening with characters  //<>//
 
 float [][] sourceIntensity;
 float [][] outputIntensity;
@@ -110,18 +110,21 @@ void dither_screening_characters(float[][] S, float[][] O) {
           createIntensityVal(letterImage, letterImageIntensity);
 
           float letterAvgIntensity = getAvgIntensity(0, 0, letterImage.width, letterImage.height, letterImageIntensity);
-          if (round(blockAvgIntensity*100)/10f == round(letterAvgIntensity*100)/10f) {      
+          
+          if (round(blockAvgIntensity*1000)/10 == round(letterAvgIntensity*1000)/10) { 
+            
             int letterImageY = 0;
-            for (int outputY=0; outputY<letterImage.height; outputY++) {               //<>//
+            for (int outputY=0; outputY<maskY; outputY++) {              
               int letterImageX = 0;
-              for (int outputX=0; outputX<letterImage.width; outputX++) {
-                //if ((sourceXAxis+outputX)<1000 && (sourceYAxis+outputY) < 1000) {
+              for (int outputX=0; outputX<maskX; outputX++) {
+                if((sourceXAxis+outputX)<w && (sourceYAxis+outputY)<h) {
                   O[sourceXAxis+outputX][sourceYAxis+outputY] = letterImageIntensity[letterImageX][letterImageY];
-                  letterImageX++;
-                //}
+                }
+                letterImageX++;
               }
               letterImageY++;
             }
+            
           }
         }
       }
