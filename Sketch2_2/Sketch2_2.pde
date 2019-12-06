@@ -111,7 +111,7 @@ boolean insertPoint(float [][] intensityArray, ArrayList<Point> pointList, float
 
   float randomPointAvgIntensity = getAvgIntensity(int(px-1), int(py-1), int(px+1), int(py+1), intensityArray);
   float rad = 1/(0.1+1-randomPointAvgIntensity);
-  //
+  
   poissonDiscRadius = rad;
 
   if (randomPointAvgIntensity > intensityArray[px][py] && isFarEnough(x, y, pointList)) {

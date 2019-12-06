@@ -123,11 +123,7 @@ boolean insertPoint(float [][] intensityArray, ArrayList<Point> pointList, float
 ArrayList<Point> createPoints() {
   int points = 0;
   int trials = 0;
-  ArrayList<Point> pointList = new ArrayList<Point>(numPoints);  
-  // TODO: Fill point list with random points until you have numPoints many of them
-  // Check each point with insertPoint
-  // Keep track of how many points you have and how many trials overall.
-  // Stop when you achieve the number of points or run out of trials.
+  ArrayList<Point> pointList = new ArrayList<Point>(numPoints);
 
   //Fill point list with random points until you have numPoints many of them
   while (points <= numPoints) {

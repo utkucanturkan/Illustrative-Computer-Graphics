@@ -150,7 +150,7 @@ void digitalScreening(float[][] S, float[][] M, float[][] O) {
   createIntensityVal(inputImage, sourceIntensity);
 }
 
-void rotate2D_fixed(int[] r, int w, int h, float radians) {
+void rotate2D_fixed(float[] r, int w, int h, float radians) {
   float x = (float)r[0];
   float y = (float)r[1];
 
@@ -167,18 +167,49 @@ void rotate2D_fixed(int[] r, int w, int h, float radians) {
   r[1] = (int) y_rot;
 }
 
-void rotatePos(int[] p, int w, int h, float radians) {
-  p[0] -= w;
-  p[1] -= h;
+void rotatePos(float[] p, int w, int h, float radians) {
   rotate2D_fixed(p, w, h, radians);
   p[0] += w;
   p[1] += h;
 }
+/*
+float[] mapping(int x, int y, int angle) {
+  float kernelSize = 8f;
+  float[] result = new float[2];
+  //rotatePos(result, x, y, angle);
+  
+  result[0] = ((result[0]%kernelSize)/kernelSize);
+  result[1] = ((result[1]%kernelSize)/kernelSize);
+  return result;
+}
+*/
 
-void draw_xyz_kernel(float[][] S) {
-  for(int x=0; x<=S.length; x++) {
-    for(int y=0; y<=S[0].length; y++) {
-      
+PVector mapping(int x, int y, int radians) {
+  float kernelSize = 8f;
+  PVector mapVector = new PVector(x,y);
+  mapVector.rotate(radians);  
+  mapVector.x += width;
+  mapVector.y += height;
+  mapVector.x = ((mapVector.x%kernelSize)/kernelSize);
+  mapVector.y = ((mapVector.y%kernelSize)/kernelSize);
+  return mapVector;
+}
+
+void draw_xyz_kernel(float[][] S, float[][] O, float k, int angle) {
+  float i, s, t;
+  for (int x=0; x<S.length; x++) {
+    for (int y=0; y<S[0].length; y++) {
+      /*
+      float[] m = mapping(x, y, angle);
+      s = m[0];
+      t = m[1];
+      */
+      PVector m = mapping(x, y, angle);
+      s = m.x;
+      t = m.y;
+      i = kernel_cross((float)s, (float)t, k);
+      //i = dither_kernel((float)s);
+      O[x][y] = (S[x][y]<i) ? 0.0 : 1.0;
     }
   }
 }
@@ -187,7 +218,7 @@ float kernel_cross(float s, float t, float I) {
   if (s<=I) {
     return I * t;
   } else {
-    return (1.f - I) * s + I;
+    return ((1.f - I) * s) + I;
   }
 }
 
@@ -204,7 +235,7 @@ float dither_kernel(float s) {
  */
 
 void settings() {
-  inputImage = loadImage("data/blume.png");
+  inputImage = loadImage("data/rampe.png");
   ditherKernel = loadImage("data/dither/4.png");
 
   size(inputImage.width, inputImage.height); // this is now the actual size
@@ -245,32 +276,34 @@ void keyPressed() {
     outputImage = inputImage;
   }
   if (key=='2') {
-    dither_treshold(sourceIntensity, outputIntensity);
+    draw_xyz_kernel(sourceIntensity, outputIntensity, 0.3, 20);
     outputImage = convertIntensityToPImage(outputIntensity);
   }
-  if (key=='3') {
-    dither_random(sourceIntensity, outputIntensity);
-    outputImage = convertIntensityToPImage(outputIntensity);
-  }
-  if (key=='4') {
-    dither_floydSteinberg1D(sourceIntensity, outputIntensity);
-    outputImage = convertIntensityToPImage(outputIntensity);
-  }
-  if (key=='5') {
-    dither_floydSteinberg2D(sourceIntensity, outputIntensity);
-    outputImage = convertIntensityToPImage(outputIntensity);
-  }
-  if (key=='6') {
-    dither_lineErrorDiffusion(sourceIntensity, outputIntensity);
-    outputImage = convertIntensityToPImage(outputIntensity);
-  }
-  if (key=='7') {
-    digitalScreening(sourceIntensity, maskIntensity, outputIntensity);
-    outputImage=convertIntensityToPImage(outputIntensity);
-  }
-  if (key=='8') {
-    draw_xyz_kernel(sourceIntensity);
-    outputImage = convertIntensityToPImage(outputIntensity);
-  }
+  /*
+  if (key=='2') {
+   dither_treshold(sourceIntensity, outputIntensity);
+   outputImage = convertIntensityToPImage(outputIntensity);
+   }
+   if (key=='3') {
+   dither_random(sourceIntensity, outputIntensity);
+   outputImage = convertIntensityToPImage(outputIntensity);
+   }
+   if (key=='4') {
+   dither_floydSteinberg1D(sourceIntensity, outputIntensity);
+   outputImage = convertIntensityToPImage(outputIntensity);
+   }
+   if (key=='5') {
+   dither_floydSteinberg2D(sourceIntensity, outputIntensity);
+   outputImage = convertIntensityToPImage(outputIntensity);
+   }
+   if (key=='6') {
+   dither_lineErrorDiffusion(sourceIntensity, outputIntensity);
+   outputImage = convertIntensityToPImage(outputIntensity);
+   }
+   if (key=='7') {
+   digitalScreening(sourceIntensity, maskIntensity, outputIntensity);
+   outputImage=convertIntensityToPImage(outputIntensity);
+   }*/
+
   if (key == 's') save("output.png");
 }

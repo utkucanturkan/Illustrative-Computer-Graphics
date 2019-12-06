@@ -1,40 +1,48 @@
-PImage inputImage; //<>// //<>// //<>// //<>//
+PImage inputImage;
 PImage outputImage;
 
 float [][] sourceIntensity;
+ArrayList<Point> [][] grid;
+int gridX=0, gridY=0;
 
-float poissonDiscRadius = 15;
-float pointRadius = 3;
-int numPoints = 50000; 
+float poissonDiscRadius = 5;
+float pointRadius = 2;
+int numPoints = 5000; 
 int numTrials = 1000000;
+float accuracy = 0.01;
 
-ArrayList _pList = new ArrayList<Point>();
+boolean computed = false;
+ArrayList<Point> computedPoints;
 
 // The Point class provides basic storage of 2D points and 3D points with a radius  
 
 class Point {
   float x, y, z, r; // R is used for the radius of a point
   float tx, ty, n;
+  color c;
 
   Point(float px, float py) {
     x = px; 
     y = py; 
     z = 0; 
     r = 1; //2D case: Default radius to 1, so all are uniform
+    c = color(0, 0, 0);
   }
 
   Point(float px, float py, float pz, float pr) {
     x = px; 
     y = py; 
     z = pz; 
-    r = pr;
+    r = pr; 
+    c = color(0, 0, 0);
   }
 
   Point (Point p) {
     x = p.x; 
     y = p.y;
     z = p.z;
-    r = p.r;
+    r = p.r;  
+    c = p.c;
   }
 
   // Computes euclidian distance between this point and another coordinate pair in the XY plane
@@ -42,17 +50,31 @@ class Point {
     return sqrt((x-px)*(x-px) + (y-py)*(y-py));
   }
 
-  void voronoiInit() {
+  void voronoiIni() { 
     tx = ty = n = 0;
   }
-
-  void voronoiMove() {
-    x = tx/n;
+  void voronoiMove() { 
+    x = tx/n; 
     y = ty/n;
     x = constrain(x, 20, width-20);
     y = constrain(y, 20, height-20);
   }
 }
+
+color intToColor(int i) {
+  int r =  (i % 64);
+  int g = ((i>>6) % 64);
+  int b = ((i>>12) % 64);
+  return color(r, g, b);
+}
+
+int colorToInt(color c) {
+  int r = (int)(c>> 16 & 0xFF);
+  int g = (int)(c>> 8  & 0xFF);
+  int b = (int)(c      & 0xFF);
+  return r + (g<<6) + (b<<12);
+}
+
 
 // Computes euclidian distance between two points in the XY plane
 float dist(Point p1, Point p2) {
@@ -117,65 +139,110 @@ float getAvgIntensity(int x1, int y1, int x2, int y2, float [][] intensityArray)
 /*
  * Insert a point into the point List, checking in the intensityArray if the average intensity around the selected area is ok 
  */
-boolean insertPoint(float [][] intensityArray, ArrayList<Point> pointList, float x, float y) {
-  // TODO: Fill in according to task in slides. Also return true if a point was placed and false if no point was placed
+boolean insertPoint(float [][] intensityArray, ArrayList pointList, float x, float y) {
 
-  int px=(int)round(x);
-  int py=(int)round(y);
+  int px = (int)round(x);
+  int py = (int)round(y);
 
-  float randomPointAvgIntensity = getAvgIntensity(int(px-1), int(py-1), int(px+1), int(py+1), intensityArray);
-  float rad = 1/(0.1+1-randomPointAvgIntensity);
-  //
-  poissonDiscRadius = rad;
-
-  if (randomPointAvgIntensity > intensityArray[px][py] && isFarEnough(x, y, pointList)) {
-    pointList.add(new Point(px, py, 0, pointRadius));
+  float avgIntensity = getAvgIntensity(px-2, py-2, px+2, py+2, intensityArray);
+  if (random(0, 1) > avgIntensity) {
+    pointList.add(new Point(x, y, random(0, 1), pointRadius));
     return true;
-  } else {
-    return false;
   }
-}
 
-boolean isFarEnough(float x, float y, ArrayList<Point> points) {
-  Point _p = new Point(x, y, 0, pointRadius);
-  for (Point p : points) {
-    if (dist(p, _p) < poissonDiscRadius) {
-      return false;
-    }
-  }
-  return true;
+  return false;
 }
 
 
 /*
  * Attempts to place numPoints many points into the picture and adds them to pointList
  */
-ArrayList<Point> createPoints() {
+ArrayList createPoints() {
+
+  ArrayList<Point> pointList = new ArrayList(numPoints);
+
   int points = 0;
   int trials = 0;
-  ArrayList<Point> pointList = new ArrayList<Point>(numPoints);
-
-  //Fill point list with random points until you have numPoints many of them
-  while (points <= numPoints) {
-    float randomPositionX = int(random(1, width));
-    float randomPositionY = int(random(1, height));
-    println("Points Number: " + pointList.size());
-    // Check each point with insertPoint
-    if (insertPoint(sourceIntensity, pointList, randomPositionX, randomPositionY)) {      
-      // Keep track of how many points you have and how many trials overall.
-      points+=1;
-    } else {
-      trials+=1;
+  do {
+    float positionX = random(0, width-1);
+    float positionY = random(0, height-1);
+    boolean accepted = insertPoint(sourceIntensity, pointList, positionX, positionY);
+    if (accepted) {
+      points++;
     }
+    trials++;
+  } while ((points<numPoints) && (trials<numTrials));
 
-    // Stop when you achieve the number of points or run out of trials.
-    if (trials >= numTrials) {
-      break;
-    }
-  }
   return pointList;
 }
 
+int nearestPoint(float x, float y, ArrayList<Point> pointList) {
+  int ind = -1;
+  float minD=width+height;
+
+  int ix = (int)round(x/(gridX-1));
+  int iy = (int)round(y/(gridY-1));
+
+  for (int i=0; i<pointList.size(); i++) {
+    Point p = pointList.get(i);
+    float d = p.distXY(x, y);
+    if (d < minD) {
+      ind = i;
+      minD = d;
+    }
+  }
+
+  return ind;
+}
+
+void movePointsUnweighted(ArrayList<Point> pointList) {
+
+  float dx=3, dy=3;
+
+  for (Point p : pointList) p.voronoiIni();
+
+
+  for (float y=0; y<height; y+=dy) {
+    for (float x=0; x<width; x+= dx) {
+      Point p = pointList.get(nearestPoint(x, y, pointList));
+
+      float it = 1-min(0.9, sourceIntensity[(int)round(p.x)][(int)round(p.y)]);
+      p.tx += x;
+      p.ty += y;
+      p.n += 1;
+    }
+    print("+");
+  }
+
+  for (Point p : pointList) p.voronoiMove();
+
+  println(" ... Moved");
+}
+
+
+void movePoints(ArrayList<Point> pointList) {
+
+  float dx=3, dy=3;
+
+  for (Point p : pointList) p.voronoiIni();
+
+
+  for (float y=0; y<height; y+=dy) {
+    for (float x=0; x<width; x+= dx) {
+      Point p = pointList.get(nearestPoint(x, y, pointList));
+
+      float it = 1-min(0.9, sourceIntensity[(int)round(p.x)][(int)round(p.y)]);
+      p.tx += x*it;
+      p.ty += y*it;
+      p.n += it;
+    }
+    print("+");
+  }
+
+  for (Point p : pointList) p.voronoiMove();
+
+  println(" ... Moved");
+}
 
 /*
  * Gets a list of points and renders them into a PImage
@@ -187,47 +254,30 @@ PImage createOutputImage(ArrayList<Point> pointList) {
   pointGraphics.beginDraw();
   pointGraphics.background(255);
   pointGraphics.fill(0);
-  pointGraphics.noStroke();
-  // TODO: Draw all points in pointList using pointGraphics.ellipse()
-  for (Point p : pointList) {
-    pointGraphics.ellipse(p.x, p.y, p.r, p.r);
+  for (int i=0; i < pointList.size(); i++) {
+    Point p = pointList.get(i);
+    pointGraphics.ellipse(p.x, p.y, 2*p.r, 2*p.r); // Draw an ellipse with the major axes being twice the radius
   }
   pointGraphics.endDraw();
 
   return pointGraphics; // PGraphics is a PImage with extra drawing stuff tacked on.
 }
 
-int nearestPoint(float x, float y, ArrayList<Point> pointList) {
-  int ind = -1;
-  float min0 = width * height;
+PImage createOutputImageBetter(ArrayList<Point> pointList) {
 
+  PGraphics pg = createGraphics(width, height);
+
+  pg.beginDraw();
+  pg.background(255);
+  pg.fill(0);
   for (int i=0; i<pointList.size(); i++) {
-    Point p = pointList.get(i);
-    float d = p.distXY(x, y);
-    if (d<min0) {
-      ind = i;
-      min0 = d;
-    }
+    Point p = (Point)pointList.get(i);
+    if (sourceIntensity[(int)p.x][(int)p.y] < 0.95)
+      pg.ellipse(p.x, p.y, 2*p.r, 2*p.r);
   }
-  return ind;
-}
+  pg.endDraw();
 
-void movePoints(ArrayList<Point> pointList) {
-  float dx=3, dy=3;
-  for (Point p : pointList) {
-    p.voronoiInit();
-  }
-  for (int y = 0; y < height; y+=dy) {
-    for (int x = 0; x < width; x+=dx) {
-      Point p = pointList.get(nearestPoint(x, y, pointList));
-      p.tx += x;
-      p.ty += y;
-      p.n += 1;
-    }
-  }
-  for (Point p : pointList) {
-    p.voronoiMove();
-  }
+  return pg;
 }
 
 void settings() {
@@ -238,14 +288,10 @@ void settings() {
 
 void setup() {
   frameRate(3);
+
   sourceIntensity = new float [inputImage.width][inputImage.height];
   createIntensityVal(inputImage, sourceIntensity);
   outputImage = inputImage;
-  for (int i=0; i<5; i++) {
-    for (int j=0; j<5; j++) {
-      _pList.add(new Point(int(random(width)), int(random(height)), 0, 5));
-    }
-  }
 }
 
 void draw() {
@@ -256,28 +302,45 @@ void keyPressed() {
   if (key=='s') save("result.png");
 
   if (key=='1') {
+    computedPoints.clear();
     outputImage = inputImage;
   }
-  
   if (key=='2') {
-    ArrayList pointList = createPoints();
-    outputImage = createOutputImage(pointList);
+    if (!computed) {
+      computedPoints = createPoints();
+      computed = true;
+    }
+    outputImage = createOutputImage(computedPoints);
   }
-  
   if (key=='3') {
-    movePoints(_pList);
-    outputImage = createOutputImage(_pList);
+    if (!computed) {
+      computedPoints = createPoints();
+      computed = true;
+    }
+    movePointsUnweighted(computedPoints);
+    outputImage = createOutputImage(computedPoints);
+  }
+  if (key=='4') {
+    if (!computed) {
+      computedPoints = createPoints();
+      computed = true;
+    }
+    movePoints(computedPoints);
+    outputImage = createOutputImage(computedPoints);
+  }
+  if (key=='4') {
+    movePoints(computedPoints);
+    outputImage = createOutputImageBetter(computedPoints);
   }
 
   if (key=='+') {
     numPoints *= 1.3;
-    ArrayList<Point> pointList = createPoints();
+    ArrayList pointList = createPoints();
     outputImage = createOutputImage(pointList);
   } 
-  
   if (key=='-') {
     numPoints /= 1.3;
-    ArrayList<Point> pointList = createPoints();
+    ArrayList pointList = createPoints();
     outputImage = createOutputImage(pointList);
   }
 }
