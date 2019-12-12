@@ -230,6 +230,12 @@ void movePoints(ArrayList<Point> pointList) {
   }
 }
 
+PImage voronoiDiagram (PImage img, ArrayList<Point> pList) {
+  PImage resultImage = createImage(img.width, img.height, RGB);
+  
+  return resultImage;
+}
+
 void settings() {
   inputImage = loadImage("data/stone_figure.png");
   inputImage.resize(0, 1000);
@@ -241,8 +247,8 @@ void setup() {
   sourceIntensity = new float [inputImage.width][inputImage.height];
   createIntensityVal(inputImage, sourceIntensity);
   outputImage = inputImage;
-  for (int i=0; i<5; i++) {
-    for (int j=0; j<5; j++) {
+  for (int i=0; i<1; i++) {
+    for (int j=0; j<2; j++) {
       _pList.add(new Point(int(random(width)), int(random(height)), 0, 5));
     }
   }

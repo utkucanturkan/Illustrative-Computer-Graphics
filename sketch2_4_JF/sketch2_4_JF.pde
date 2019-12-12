@@ -7,7 +7,7 @@ int gridX=0, gridY=0;
 
 float poissonDiscRadius = 5;
 float pointRadius = 2;
-int numPoints = 5000; 
+int numPoints = 1000; 
 int numTrials = 1000000;
 float accuracy = 0.01;
 
@@ -62,9 +62,9 @@ class Point {
 }
 
 color intToColor(int i) {
-  int r =  (i % 64);
-  int g = ((i>>6) % 64);
-  int b = ((i>>12) % 64);
+  int r =  (i % 128);
+  int g = ((i>>6) % 128);
+  int b = ((i>>12) % 128);
   return color(r, g, b);
 }
 
@@ -195,6 +195,17 @@ int nearestPoint(float x, float y, ArrayList<Point> pointList) {
   return ind;
 }
 
+PImage voronoiDiagram (ArrayList<Point> pointList) {
+  PImage resultImage = createImage(width, height, RGB);
+  for (int y = 0; y < height; y++ ) {
+    for (int x = 0; x < width; x++) {
+      int i = nearestPoint(x, y, pointList);
+      resultImage.set(x, y, intToColor(i));
+    }
+  }
+  return resultImage;
+}
+
 void movePointsUnweighted(ArrayList<Point> pointList) {
 
   float dx=3, dy=3;
@@ -318,7 +329,8 @@ void keyPressed() {
         computed = true;
       }
       movePointsUnweighted(computedPoints);
-      outputImage = createOutputImage(computedPoints);
+      //outputImage = createOutputImage(computedPoints);
+      outputImage = voronoiDiagram(computedPoints);
   }
   if (key=='4') {
     if (!computed) {
@@ -326,12 +338,16 @@ void keyPressed() {
         computed = true;
       }
       movePoints(computedPoints);
-      outputImage = createOutputImage(computedPoints);
+      //outputImage = createOutputImage(computedPoints);
+      outputImage = voronoiDiagram(computedPoints);
   }
+  
+  /*
   if (key=='4') {
     movePoints(computedPoints);
     outputImage = createOutputImageBetter(computedPoints);
   }
+  */
 
   if (key=='+') {
       numPoints *= 1.3;

@@ -189,8 +189,7 @@ void keyPressed() {
   if (key=='1') {
     outputImage = inputImage;
   }
-  if (key=='2') {
-    //avgSourceIntensity = getAvgIntensity(0, 0, sourceIntensity.length, sourceIntensity[0].length, sourceIntensity);
+  if (key=='2') {  
     ArrayList pointList = createPoints();
     outputImage = createOutputImage(pointList);
   }  
