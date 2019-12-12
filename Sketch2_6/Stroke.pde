@@ -97,9 +97,14 @@ class Stroke {
     float gy = (brightness(inp.pixels[actX-1 + (actY+1)*w]) - brightness(inp.pixels[actX-1 + (actY-1)*w])) + 
       2*(brightness(inp.pixels[actX   + (actY+1)*w]) - brightness(inp.pixels[actX   + (actY-1)*w])) +
       (brightness(inp.pixels[actX+1 + (actY+1)*w]) - brightness(inp.pixels[actX+1 + (actY-1)*w]));
-
-
+    
+    float lenghtOfVector = sqrt((gx*gx) + (gy*gy));    
+    if (lenghtOfVector!=0) {
+      gx = gx/lenghtOfVector;
+      gy = gy/lenghtOfVector;
+    }   
+    
     // TODO: Use the gradient to move further. replace PVector(0, 0) with the next location the stroke goes to, according to the gradient.
-    plist.add(new PVector(actX+gx, actY+gy));
+    plist.add(new PVector(actX-gy,actY+gx));
   }
 }
