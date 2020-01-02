@@ -7,7 +7,7 @@ int gridX=0, gridY=0;
 
 float poissonDiscRadius = 5;
 float pointRadius = 2;
-int numPoints = 1000; 
+int numPoints =5000; 
 int numTrials = 1000000;
 float accuracy = 0.01;
 

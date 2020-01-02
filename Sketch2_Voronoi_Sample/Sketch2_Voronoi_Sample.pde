@@ -247,8 +247,8 @@ void setup() {
   sourceIntensity = new float [inputImage.width][inputImage.height];
   createIntensityVal(inputImage, sourceIntensity);
   outputImage = inputImage;
-  for (int i=0; i<1; i++) {
-    for (int j=0; j<2; j++) {
+  for (int i=0; i<5; i++) {
+    for (int j=0; j<5; j++) {
       _pList.add(new Point(int(random(width)), int(random(height)), 0, 5));
     }
   }
