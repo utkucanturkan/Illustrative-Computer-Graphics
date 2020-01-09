@@ -78,10 +78,6 @@ class Stroke { //<>//
       float yoff = wid/2 * n.y;
       vertex(x+xoff, y+yoff, 0, _texi.width, v);
       vertex(x-xoff, y-yoff, 0, 0, v);
-      //PVector n = getOffsetNormal(plist,i);
-      //float v = 0.0; // T!
-      //vertex(0, 0, 0, 0); // T!
-      //vertex(0, 0, 0, 0); // T!
     }
     endShape();
   }
@@ -105,27 +101,27 @@ class Stroke { //<>//
   //-------------------------------------------------------------
 
   PVector getOffsetNormal(ArrayList<PVector> plist, int index) {
-
-    // TODO: Compute the offset normal as shown on the slides 
     PVector z = new PVector(0f, 0f, 1f);
     if (plist.size() == 1 || index > plist.size()-1) {
       z = new PVector(0f, 1f, 0f);
     }
     if (index==0) {
-      PVector pn = plist.get(index);
-      PVector p1 = plist.get(index+1);
-      z = PVector.sub(p1, pn).rotate(HALF_PI);
+      PVector pN = plist.get(index);
+      PVector pFirst = plist.get(index+1);
+      z = PVector.sub(pFirst, pN).rotate(HALF_PI);
     }
     if (index==plist.size()-1) {
-      PVector pn = plist.get(index);
-      PVector p1 = plist.get(index-1);
-      z = PVector.sub(pn, p1).rotate(HALF_PI);
+      PVector pN = plist.get(index);
+      PVector pFirst = plist.get(index-1);
+      z = PVector.sub(pN, pFirst).rotate(HALF_PI);
     } 
     if (index > 0 && index<plist.size()-1) {
-      PVector pn = plist.get(index);
-      PVector p1 = plist.get(index-1);
-      PVector p2 = plist.get(index+1);
-      z = PVector.add(PVector.sub(pn, p1).rotate(HALF_PI).normalize(), PVector.sub(p2, pn).rotate(HALF_PI).normalize());
+      PVector pN = plist.get(index);
+      PVector pFirst = plist.get(index-1);
+      PVector pLast = plist.get(index+1);
+      PVector pNpFirstVectorNormalized = PVector.sub(pN, pFirst).rotate(HALF_PI).normalize();
+      PVector pNpLastVectorNormalized = PVector.sub(pLast, pN).rotate(HALF_PI).normalize();
+      z = PVector.add(pNpFirstVectorNormalized, pNpLastVectorNormalized);
     }
     z.normalize();
     return z;
@@ -182,8 +178,7 @@ class Stroke { //<>//
       color actC = inp.get(round(next.x), round(next.y));
 
       // TODO: Handle excessive color change
-      if (sqrt(sq(red(col)-red(actC)) + sq(green(col)-green(actC)) 
-        + sq(blue(col)-blue(actC))) > 50) 
+      if (sqrt(sq(red(col)-red(actC)) + sq(green(col)-green(actC)) + sq(blue(col)-blue(actC))) > 50) 
         break;
 
       // a ----- b 

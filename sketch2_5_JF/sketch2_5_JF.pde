@@ -303,6 +303,7 @@ void setup() {
   sourceIntensity = new float [inputImage.width][inputImage.height];
   createIntensityVal(inputImage, sourceIntensity);
   outputImage = inputImage;
+  computedPoints = new ArrayList<Point>();
 }
 
 void draw() {
@@ -315,6 +316,7 @@ void keyPressed() {
   if (key=='1') {
      computedPoints.clear();
      outputImage = inputImage;
+     computed = false;
   }
   if (key=='2') {
       if (!computed) {

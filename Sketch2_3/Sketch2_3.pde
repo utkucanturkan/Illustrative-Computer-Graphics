@@ -11,7 +11,7 @@ float pointRadius = 1;
 int numPoints = 50000; 
 int numTrials = 1000000;
 
-ArrayList<Disc> discList;
+ArrayList<Point> discList;
 
 float avgSourceIntensity;
 
@@ -125,7 +125,8 @@ float getAvgIntensity(int x1, int y1, int x2, int y2, float [][] intensityArray)
  * Insert a point into the point List, checking in the intensityArray if the average intensity around the selected area is ok 
  */
 boolean insertPoint(float [][] intensityArray, ArrayList<Point> pointList, float x, float y) {
-  // TODO: Fill in according to task in slides. Also return true if a point was placed and false if no point was placed
+  // TODO: Fill in according to task in slides. 
+  // Also return true if a point was placed and false if no point was placed
 
   float randomPointAvgIntensity = getAvgIntensity(int(x-poissonDiscRadius), int(y-poissonDiscRadius), int(x+poissonDiscRadius), int(y+poissonDiscRadius), intensityArray);
 
@@ -134,18 +135,18 @@ boolean insertPoint(float [][] intensityArray, ArrayList<Point> pointList, float
   
   if (randomPointAvgIntensity < 0.95 && isFarEnough(x, y, discList)) {
     pointList.add(new Point(x, y, 0, poissonDiscRadius));
-    discList.add(new Disc(x, y, poissonDiscRadius));
+    discList.add(new Point(x, y, 0, poissonDiscRadius));
     return true;
   } else {
     return false;
   }
 }
 
-boolean isFarEnough(float x, float y, ArrayList<Disc> plist) {
-  Point p= new Point(x, y);
+boolean isFarEnough(float x, float y, ArrayList<Point> plist) {
+  Point p = new Point(x, y);
 
-  for (Disc d : plist) {
-    if (p.dist(d.x, d.y) < d.r)
+  for (Point _p : plist) {
+    if (dist(p, p) < _p.r)
       return false;
   }
   return true;
@@ -237,8 +238,8 @@ void keyPressed() {
     outputImage = createOutputImage(pointList);
   }  
   if (key=='3') {
-    //createPointsPoissonDisc();
-    //outputImage = createOutputImage(pointList);
+    ArrayList pointList = createPoints();
+    outputImage = createOutputImage(pointList);
   }
 
   if (key=='+') {
