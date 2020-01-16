@@ -1,4 +1,4 @@
-// Sketch 3-1 
+// Sketch 4-1 
 
 float [][] sourceImageArray, outputImageArray;
 int imageHeight = 500;
@@ -103,6 +103,16 @@ PImage modulateImage1(PImage img, PImage depth, PImage nmap) {
   return res;
 }
 
+void addBackground() {
+  outputImage.loadPixels();
+  for (int p=0; p<outputImage.pixels.length; p++) {
+    if (outputImage.pixels[p] == color(255, 255, 255)) {
+      outputImage.pixels[p] = color(210, 210, 210);
+    }
+  }
+  outputImage.updatePixels();
+}
+
 /////////////////////////////////////////////////////////////////////////////
 
 PImage createEdgesCanny(PImage img, float low, float high) {
@@ -129,7 +139,7 @@ PImage createEdgesCanny(PImage img, float low, float high) {
 void setup() { 
 
   //inp = loadImg("Select Input image");
-  inputImage = loadImage("data/venus.png");
+  inputImage = loadImage("data/dragon.png");
   inputImage.resize(0, imageHeight); // proportional scale to height=500
 
   size(500, 500); // size must always have fixed parameters...
@@ -138,11 +148,11 @@ void setup() {
   frameRate(3);
 
   // depth = loadImg("Select depth Image");
-  depthImage = loadImage("data/venus_depth.png");
+  depthImage = loadImage("data/dragon_depth.png");
   depthImage.resize(0, imageHeight); // proportional scale to height=500
 
   //nmap = loadImg("Select normal Image");
-  normalMap = loadImage("data/venus_normal.png");
+  normalMap = loadImage("data/dragon_normal.png");
   normalMap.resize(0, imageHeight); // proportional scale to height=500
 
   outputImage = inputImage;
@@ -180,10 +190,12 @@ void keyPressed() {
 
   if (key=='5') { 
     outputImage = createEdgesCanny(depthImage, 4, 14);
+    outputImage.filter(ERODE);
   }
 
   if (key=='6') {
     outputImage = modulateImage1(inputImage, depthImage, normalMap);
+    addBackground();
   }
 
   if (key=='a') {

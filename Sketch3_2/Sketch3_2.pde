@@ -68,16 +68,22 @@ PImage markDepth(PImage depth, int desiredDepth) {
 ///////////////////////////////////////////////////
 
 PImage modulateImage1(PImage img, PImage depth, PImage nmap) {
-
-  //PImage res = createImage(depth.width, depth.height, RGB);
-
   PImage res = img.copy();
+  PImage depthImage = depth.copy();
   PImage copyOfDepthImage = depth.copy();
-  copyOfDepthImage.filter(BLUR, 15);
   
-  res.blend(copyOfDepthImage, 0,0, res.width, res.height, 0, 0, res.width, res.height, SUBTRACT);
-
-  return res;
+  copyOfDepthImage.filter(BLUR, 15);  
+  depthImage.blend(copyOfDepthImage, 0,0, res.width, res.height, 0, 0, res.width, res.height, SUBTRACT);
+  
+  depthImage.loadPixels();
+  for (int i=0; i<res.width*res.height; i++) {
+    float br = brightness(depthImage.pixels[i]);
+    if(depthImage.pixels[i]!=black)
+      depthImage.pixels[i] = color(0,br*0.2,br);
+  }
+  depthImage.updatePixels();
+  
+  return depthImage; 
 }
 
 /////////////////////////////////////////////////////////////////////////////
