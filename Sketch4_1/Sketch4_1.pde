@@ -69,15 +69,14 @@ PImage markDepth(PImage depth, int desiredDepth) {
 }
 
 ///////////////////////////////////////////////////
-
 PImage modulateImage1(PImage img, PImage depth, PImage nmap) {
   PImage res = createImage(depth.width, depth.height, RGB);  
-  PImage e = createEdgesCanny(img, 2f, 6f);
-  PImage red = createEdgesCanny(selectChannel(depth, 0), 2f, 6f);  
+  PImage e = createEdgesCanny(img, clow, chigh);
+  PImage red = createEdgesCanny(selectChannel(depth, 0), clow, chigh);  
   // different components of the normal edges
-  PImage normalRedEdges = createEdgesCanny(selectChannel(nmap, 0), 2f, 6f);
-  PImage normalGreenEdges = createEdgesCanny(selectChannel(nmap, 1), 2f, 6f);
-  PImage normalBlueEdges = createEdgesCanny(selectChannel(nmap, 2), 2f, 6f);
+  PImage normalRedEdges = createEdgesCanny(selectChannel(nmap, 0), clow, chigh);
+  PImage normalGreenEdges = createEdgesCanny(selectChannel(nmap, 1), clow, chigh);
+  PImage normalBlueEdges = createEdgesCanny(selectChannel(nmap, 2), clow, chigh);
 
   // Blending red, green and blue edges 
   normalRedEdges.blend(normalGreenEdges, 0, 0, res.width, res.height, 0, 0, res.width, res.height, DARKEST);
@@ -103,14 +102,44 @@ PImage modulateImage1(PImage img, PImage depth, PImage nmap) {
   return res;
 }
 
-void addBackground() {
-  outputImage.loadPixels();
-  for (int p=0; p<outputImage.pixels.length; p++) {
-    if (outputImage.pixels[p] == color(255, 255, 255)) {
-      outputImage.pixels[p] = color(210, 210, 210);
+
+PImage modulateImage2(PImage img, PImage depth) {
+  PImage res = createImage(img.width, img.height, RGB);
+
+  for (int i=0; i<res.width*res.height; i++) {
+
+    // Get the brightness of the pixel on the index
+    float brightnessValue = brightness(img.pixels[i]);
+
+    // Pixels brightness full(white) 
+    if (brightnessValue == 255) {
+      res.pixels[i] = color(255, 255, 255);
+    } else if (brightnessValue <= 170 && brightnessValue >= 85) {
+      // gray (RGB)
+      res.pixels[i] = color(0, 100);
+    } else {
+      // black (RGB)
+      res.pixels[i] = color(200, 100);
     }
   }
-  outputImage.updatePixels();
+
+  // Blend background with current image(res)
+  PImage backgroundImage;
+  backgroundImage = loadImage("data/background.jpg");
+  backgroundImage.blend(res, 0, 0, res.width, res.height, 0, 0, res.width, res.height, DARKEST);
+
+  // Blend edges of input image and background image 
+  // that has been already blended with res  
+  PImage edges = createEdgesCanny(img, clow, chigh);
+  backgroundImage.blend(edges, 0, 0, res.width, res.height, 0, 0, res.width, res.height, DARKEST);
+
+  // Blend eroded depth image and background image 
+  // that has been already blended with res and edges 
+  PImage depthERODED = createEdgesCanny(depth, clow, chigh);
+  depthERODED.filter(ERODE);  
+  backgroundImage.blend(depthERODED, 0, 0, res.width, res.height, 0, 0, res.width, res.height, DARKEST);
+
+  return backgroundImage;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -194,8 +223,7 @@ void keyPressed() {
   }
 
   if (key=='6') {
-    outputImage = modulateImage1(inputImage, depthImage, normalMap);
-    addBackground();
+    outputImage = modulateImage2(inputImage, depthImage);
   }
 
   if (key=='a') {
