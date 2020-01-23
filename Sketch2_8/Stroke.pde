@@ -53,7 +53,7 @@ class Stroke { //<>//
 
     beginShape(QUAD_STRIP);
     texture(_texi); 
-    normal(0, 0, 1); // only for lights
+    normal(0, 0, 1);
     for (int i = 0; i < plist.size(); ++i) {
 
       // TODO: Build the quad strip: 
