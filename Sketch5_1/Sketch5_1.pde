@@ -105,54 +105,34 @@ PImage modulateImage1(PImage img, PImage depth, PImage nmap) {
 }
 
 
-PImage modulateImage2(PImage img, PImage depth) {
-  PImage res = createImage(img.width, img.height, RGB);
+PImage modulateImage2(PImage img, PImage nmap) {
+  PImage res = new PImage(img.width,img.height);
+  PVector viewVector = new PVector(0, 0, 1);
+  int w = img.width;
+  int h = img.height;
 
-  for (int i=0; i<res.width*res.height; i++) {
-
-    // Get the brightness of the pixel on the index
-    float brightnessValue = brightness(img.pixels[i]);
-
-    // Pixels brightness full(white) 
-    if (brightnessValue == 255) {
-      res.pixels[i] = color(255, 255, 255);
-    } else if (brightnessValue <= 170 && brightnessValue >= 85) {
-      // gray (RGB)
-      res.pixels[i] = color(0, 100);
-    } else {
-      // black (RGB)
-      res.pixels[i] = color(200, 100);
+  for (int y=0; y<h; y++) {
+    for (int x=0; x<w; x++) {
+      
+      // set all pixels of the new image
+      res.pixels[x+y*w] = color(255, 255, 255);
+      
+      // get the pixel with indices(x,y) of normalMap picture
+      color pixelOfNormalMap = nmap.get(int(x),int(y));
+      
+      // calculate normalVector of pixel by RGB components
+      PVector normalVector = new PVector(red(pixelOfNormalMap)/255, green(pixelOfNormalMap)/255, blue(pixelOfNormalMap)/255);
+      float nv = viewVector.dot(normalVector);
+      
+      // if epsilon is bigger than dot production of viewVector and normalVector
+      // set the pixel black
+      if (abs(nv)<epsilon) {
+        res.pixels[x+y*w] = color(0,0,0);
+      }
     }
   }
-
-  // Blend background with current image(res)
-  PImage backgroundImage;
-  backgroundImage = loadImage("data/background.jpg");
-  backgroundImage.blend(res, 0, 0, res.width, res.height, 0, 0, res.width, res.height, DARKEST);
-
-  // Blend edges of input image and background image 
-  // that has been already blended with res  
-  PImage edges = createEdgesCanny(img, clow, chigh);
-  backgroundImage.blend(edges, 0, 0, res.width, res.height, 0, 0, res.width, res.height, DARKEST);
-
-  // Blend eroded depth image and background image 
-  // that has been already blended with res and edges 
-  PImage depthERODED = createEdgesCanny(depth, clow, chigh);
-  depthERODED.filter(ERODE);  
-  backgroundImage.blend(depthERODED, 0, 0, res.width, res.height, 0, 0, res.width, res.height, DARKEST);
   
-  
-
-  return backgroundImage;
-}
-
-void findPerpendicularPixels(PImage img) {
-  
-  img.loadPixels();
-  for(int i=0; i<img.width * img.height; i++) {
-    PVector normal = new PVector(img.pixels[i] / 255, img.pixels[
-  }
-  
+  return res;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -160,7 +140,7 @@ void findPerpendicularPixels(PImage img) {
 PImage createEdgesCanny(PImage img, float low, float high) {
 
   //create the detector CannyEdgeDetector 
-  CannyEdgeDetector detector = new CannyEdgeDetector(); 
+  CannyEdgeDetector detector = new CannyEdgeDetector();
 
   //adjust its parameters as desired 
   detector.setLowThreshold(low); 
@@ -240,7 +220,7 @@ void keyPressed() {
   }
 
   if (key=='6') {
-    outputImage = modulateImage2(inputImage, depthImage);
+    outputImage = modulateImage2(inputImage, normalMap);
   }
 
   if (key=='a') {
