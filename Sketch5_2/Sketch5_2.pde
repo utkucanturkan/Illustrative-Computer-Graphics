@@ -38,7 +38,7 @@ void setup() {
   println("Loading shape...");
   sceneObject = loadShape("Blob.obj");
   sceneObject.scale(10);
-  sceneObject.rotateZ(radians(180));
+  //sceneObject.rotateZ(radians(180));
   sceneObject.rotateX(radians(-45));
 
   /*sceneObject = loadShape("David.obj");
