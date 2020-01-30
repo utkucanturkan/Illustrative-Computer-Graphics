@@ -11,8 +11,8 @@ in vec4 gl_FragCoord;
 
 
 void main() {
-  vec3 viewVector = normalize(vertLightDir); // TODO!
-  float nv = dot(viewVector, vertNormal);  // TODO!
-  vec4 color = vec4(nv, 0.0, 1.0-nv, 1.0); // TODO: Color from NV
+  vec3 viewVector = vertPosition.xyz - cameraPosition; // TODO!
+  float nv = dot(normalize(viewVector), vertNormal);  // TODO!
+  vec4 color = vec4(nv, nv, nv, 1.0); // TODO: Color from NV
   gl_FragColor = color * vertColor;
 }
