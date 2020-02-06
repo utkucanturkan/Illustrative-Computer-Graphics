@@ -22,12 +22,12 @@ void main()
 
     int totalPixels = 0;
     int darkerPixels = 0;
-    float maxIntensity = 0.0;
+    float maxIntensity = centerBrightness;
 
     float S = 1.0 - (1.0 / float(radius) * s_modifier);
     float D = 1.0 / radius * d_modifier;
 
-    vec2 brightestPixel = vec2(0, 0);
+    vec4 brightestPixel = vec4(0.0);
     for (int cx = x - radius; cx < x + radius; ++cx)
     {
         for (int cy = y - radius; cy < y + radius; ++cy)
@@ -35,8 +35,8 @@ void main()
 
             // TODO: Check if pixel is in bounds of texture and in bounds of circle
             // use distance(vec2, vec2) for the latter
-            vec2 p = vec2(cx, cy);
-            if (distance(centerPixel.xy, p) < radius)
+            vec4 p = texelFetch(texture, ivec2(cx, cy), 0);
+            if (distance(centerPixel.xy, p.xy) < radius)
             {
                 totalPixels += 1;
                 float b = dot(p.rgb, vec3(0.3, 0.59, 0.11));
@@ -60,10 +60,10 @@ void main()
     // TODO: If this pixel is a valley paint it black opaque, otherwise leave it out (vec4(0.0))
     if ((maxIntensity - centerBrightness) > D && (D / S) < S)
     {
-        color = vec4(1.0, 1.0, 1.0, 1.0);
+        color = vec4(0.0, 0.0, 0.0, 0.0); // Valley
     }
     else
     {
-        color = vec4(0.0, 0.0, 0.0, 0.0);
+        color = vec4(1.0, 1.0, 1.0, 1.0);
     }
 }
