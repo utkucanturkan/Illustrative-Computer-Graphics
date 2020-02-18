@@ -72,12 +72,12 @@ PImage markDepth(PImage depth, int desiredDepth) {
 
 PImage modulateImage1(PImage img, PImage depth, PImage nmap) {
   PImage res = createImage(depth.width, depth.height, RGB);  
-  PImage e = createEdgesCanny(img, 2f, 6f);
-  PImage red = createEdgesCanny(selectChannel(depth, 0), 2f, 6f);  
+  PImage e = createEdgesCanny(img, clow, chigh);
+  PImage red = createEdgesCanny(selectChannel(depth, 0), clow, chigh);  
   // different components of the normal edges
-  PImage normalRedEdges = createEdgesCanny(selectChannel(nmap, 0), 2f, 6f);
-  PImage normalGreenEdges = createEdgesCanny(selectChannel(nmap, 1), 2f, 6f);
-  PImage normalBlueEdges = createEdgesCanny(selectChannel(nmap, 2), 2f, 6f);
+  PImage normalRedEdges = createEdgesCanny(selectChannel(nmap, 0), clow, chigh);
+  PImage normalGreenEdges = createEdgesCanny(selectChannel(nmap, 1), clow, chigh);
+  PImage normalBlueEdges = createEdgesCanny(selectChannel(nmap, 2), clow, chigh);
 
   // Blending red, green and blue edges 
   normalRedEdges.blend(normalGreenEdges, 0, 0, res.width, res.height, 0, 0, res.width, res.height, DARKEST);
@@ -87,14 +87,17 @@ PImage modulateImage1(PImage img, PImage depth, PImage nmap) {
     res.pixels[i] = white;
 
     // Mark corresponding pixels in the image
+    // Depth Image
     if (red.pixels[i] == black) {
       res.pixels[i] = color(255, 0, 0);
     }
-
+    
+    // Normal Map Image
     if (normalRedEdges.pixels[i] == black) {
       res.pixels[i] = color(0, 0, 255);
     }
 
+    // Edge Image
     if (e.pixels[i] == black) {
       res.pixels[i] = black;
     }

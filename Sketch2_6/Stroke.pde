@@ -70,8 +70,8 @@ class Stroke {
       float col1Blue = blue(col1);   
       float col2Blue = blue(col2);
 
-      //if (sqrt((col1Red - col2Red) * (col1Red - col2Red) + (col1Green - col2Green) * (col1Green - col2Green) + (col1Blue - col2Blue) * (col1Blue - col2Blue))) 
-      //break;
+      if (sqrt((col1Red - col2Red) * (col1Red - col2Red) + (col1Green - col2Green) * (col1Green - col2Green) + (col1Blue - col2Blue) * (col1Blue - col2Blue)) > 50) 
+       break;
     }
   }
 
@@ -82,7 +82,6 @@ class Stroke {
     int actY = (int)round(plist.get(plist.size()-1).y);
     int w = inp.width;
 
-    if (inp == null) return;
     actX = constrain(actX, 1, inp.width-2);
     actY = constrain(actY, 1, inp.height-2);
 
@@ -100,6 +99,7 @@ class Stroke {
     
     // Normalization
     float lenghtOfVector = sqrt((gx*gx) + (gy*gy));     
+    if (lenghtOfVector == 0 ) return;
     
     // TODO: Use the gradient to move further. replace PVector(0, 0) with the next location the stroke goes to, according to the gradient.
     plist.add(new PVector(actX-(gy/lenghtOfVector),actY+(gx/lenghtOfVector)));

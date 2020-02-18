@@ -33,8 +33,7 @@ void createStrokeAtMousePosition() {
   int px = (int)mouseX;
   int py = (int)mouseY;
   color col = inp.pixels[px + py*inp.width];
-  Stroke s = new Stroke(new PVector(px, py), radius, 
-                   color(255-red(col), 255-green(col), 255-blue(col)));
+  Stroke s = new Stroke(new PVector(px, py), radius, color(255-red(col), 255-green(col), 255-blue(col)));
   s.movePerpendicuarToGradient(20, inp); 
   s.draw();
 }

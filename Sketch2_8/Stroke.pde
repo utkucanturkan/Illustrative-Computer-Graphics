@@ -76,8 +76,8 @@ class Stroke { //<>//
       float v = _texi.height * l/len;
       float xoff = wid/2 * n.x;
       float yoff = wid/2 * n.y;
-      vertex(x+xoff, y+yoff, 0, _texi.width, v);
-      vertex(x-xoff, y-yoff, 0, 0, v);
+      vertex(x-xoff, y-yoff, _texi.width, v);
+      vertex(x+xoff, y+yoff, 0, v);
     }
     endShape();
   }
